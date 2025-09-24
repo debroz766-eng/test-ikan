@@ -24,6 +24,7 @@ local Tabs = {
     Wtp = Window:AddTab({ Title = "World TP", Icon = "" }),
     Weather = Window:AddTab({ Title = "Weather Machine", Icon = "" }),
     Boats = Window:AddTab({ Title = "Spawn Boat", icon = "" }),
+    Utilities = Window:AddTab({ Title = "Utilities", Icon = "⚙️" }),
     Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
 }
 local AutoFishSection = Tabs.Fish:AddSection("Auto Fish")
@@ -39,6 +40,12 @@ local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid")
 local animator = humanoid:FindFirstChildOfClass("Animator") or Instance.new("Animator", humanoid)
+
+-- Tambahkan services yang diperlukan
+local TeleportService = game:GetService("TeleportService")
+local PlaceId = game.PlaceId
+local JobId = game.JobId
+
 
 -- Config
 local Config = {
@@ -58,14 +65,14 @@ local function stopAll()
 end
 
 -- Helper play animasi
-local function playAnimation(animId)
-    stopAll()
-    local animation = Instance.new("Animation")
-    animation.AnimationId = animId
-    local track = animator:LoadAnimation(animation)
-    track:Play()
-    return track
-end
+-- local function playAnimation(animId)
+--     stopAll()
+--     local animation = Instance.new("Animation")
+--     animation.AnimationId = animId
+--     local track = animator:LoadAnimation(animation)
+--     track:Play()
+--     return track
+-- end
 
 -- Fishing Function (sekali eksekusi)
 local function doFishingOnce()
@@ -100,7 +107,7 @@ local function doFishingOnce()
         :FireServer()
 
     -- STEP 4: Idle Animasi
-    playAnimation("rbxassetid://96586569072385")
+    -- playAnimation("rbxassetid://96586569072385")
 end
 
 -- AutoFishing Loop
@@ -350,73 +357,174 @@ Tabs.Boats:AddButton({
     end
 })
 
+-- ======================================
+-- UTILITIES TAB - Tambahkan di sini
+-- ======================================
+local UtilitiesSection = Tabs.Utilities:AddSection("Server Utilities")
 
--- local weatherTypes = {
---     "Wind",
---     "Cloudy",
---     "Snow",
---     "Storm",
---     "Radiant",
---     "Shark Hunt"
--- }
+-- Fungsi Rejoin
+local function rejoinServer()
+    UtilitiesSection:AddButton({
+        Title = "Rejoin Server",
+        Description = "Rejoin current server atau game",
+        Callback = function()
+            if #Players:GetPlayers() <= 1 then
+                Fluent:Notify({
+                    Title = "Rejoin",
+                    Content = "Rejoining game...",
+                    Duration = 3
+                })
+                Players.LocalPlayer:Kick("\nRejoining...")
+                wait(0.5)
+                TeleportService:Teleport(PlaceId, Players.LocalPlayer)
+            else
+                Fluent:Notify({
+                    Title = "Rejoin", 
+                    Content = "Rejoining server instance...",
+                    Duration = 3
+                })
+                TeleportService:TeleportToPlaceInstance(PlaceId, JobId, Players.LocalPlayer)
+            end
+        end
+    })
+end
 
--- local ReplicatedStorage = game:GetService("ReplicatedStorage")
--- local netModule = ReplicatedStorage:WaitForChild("Packages")
---     :WaitForChild("_Index")
---     :WaitForChild("sleitnick_net@0.2.0")
---     :WaitForChild("net")
---     :WaitForChild("RF/PurchaseWeatherEvent")
+-- Fungsi Server Hop (optional)
+local function serverHop()
+    UtilitiesSection:AddButton({
+        Title = "Server Hop",
+        Description = "Join random server",
+        Callback = function()
+            Fluent:Notify({
+                Title = "Server Hop",
+                Content = "Finding new server...",
+                Duration = 4
+            })
+            
+            -- Simple server hop implementation
+            local servers = TeleportService:GetGameInstances(PlaceId)
+            if #servers > 0 then
+                local randomServer = servers[math.random(1, #servers)]
+                TeleportService:TeleportToPlaceInstance(PlaceId, randomServer.JobId, Players.LocalPlayer)
+            else
+                Fluent:Notify({
+                    Title = "Server Hop",
+                    Content = "No servers found! Rejoining...",
+                    Duration = 4
+                })
+                rejoinServer()
+            end
+        end
+    })
+end
 
--- local AutoWeatherToggles = {} -- simpan toggle per weather
+-- Fungsi Reset Character
+local function resetCharacter()
+    UtilitiesSection:AddButton({
+        Title = "Reset Character",
+        Description = "Reset your character",
+        Callback = function()
+            local character = Players.LocalPlayer.Character
+            if character then
+                character:BreakJoints()
+                Fluent:Notify({
+                    Title = "Reset",
+                    Content = "Character reset!",
+                    Duration = 3
+                })
+            end
+        end
+    })
+end
 
--- for _, weather in ipairs(weatherTypes) do
---     -- Button manual beli weather
---     Tabs.Weather:AddButton({
---         Title = weather,
---         Description = "Purchase weather: " .. weather,
---         Callback = function()
---             pcall(function()
---                 netModule:InvokeServer(weather)
---                 print("Purchased weather:", weather)
---             end)
---         end
---     })
+-- Panggil fungsi untuk membuat buttons
+rejoinServer()
+serverHop() -- Optional
+resetCharacter()
 
---     -- Toggle auto beli per weather
---     AutoWeatherToggles[weather] = Tabs.Weather:AddToggle("Auto_" .. weather, {
---         Title = "Auto " .. weather,
---         Default = false,
---         Callback = function(Value)
---             if Value then
---                 Fluent:Notify({
---                     Title = "Weather",
---                     Content = "Auto purchasing " .. weather .. " ON",
---                     Duration = 4
---                 })
---                 -- spawn auto loop
---                 task.spawn(function()
---                     while AutoWeatherToggles[weather].Value do
---                         pcall(function()
---                             netModule:InvokeServer(weather)
---                             print("Auto purchased weather:", weather)
---                         end)
---                         -- tunggu 10 menit
---                         for i = 1, 600 do
---                             if not AutoWeatherToggles[weather].Value then break end
---                             task.wait(1)
---                         end
---                     end
---                 end)
---             else
---                 Fluent:Notify({
---                     Title = "Weather",
---                     Content = "Auto purchasing " .. weather .. " OFF",
---                     Duration = 4
---                 })
---             end
---         end
---     })
--- end
+-- ======================================
+-- COMMAND SYSTEM (Optional) - Jika ingin sistem command seperti yang Anda minta
+-- ======================================
+local CommandsSection = Tabs.Utilities:AddSection("Chat Commands")
+
+-- Sistem command handler
+local commandHandlers = {}
+
+function addcmd(command, aliases, callback)
+    table.insert(commandHandlers, {
+        command = command,
+        aliases = aliases or {},
+        callback = callback
+    })
+end
+
+-- Setup chat listener untuk commands
+local function setupChatCommands()
+    local function onChatMessage(message, speaker)
+        if string.sub(message, 1, 1) == ";" then -- Prefix command
+            local args = {}
+            for word in string.gmatch(message, "%S+") do
+                table.insert(args, word)
+            end
+            
+            local cmd = string.lower(string.sub(args[1], 2)) -- Remove prefix
+            local commandArgs = {}
+            for i = 2, #args do
+                table.insert(commandArgs, args[i])
+            end
+            
+            for _, handler in ipairs(commandHandlers) do
+                if cmd == string.lower(handler.command) then
+                    pcall(handler.callback, commandArgs, speaker)
+                    return
+                end
+                for _, alias in ipairs(handler.aliases) do
+                    if cmd == string.lower(alias) then
+                        pcall(handler.callback, commandArgs, speaker)
+                        return
+                    end
+                end
+            end
+        end
+    end
+
+    -- Listen to chat (basic implementation)
+    Players.LocalPlayer.Chatted:Connect(function(message)
+        onChatMessage(message, Players.LocalPlayer)
+    end)
+end
+
+-- Register rejoin command
+addcmd("rejoin", {"rj"}, function(args, speaker)
+    Fluent:Notify({
+        Title = "Rejoin Command",
+        Content = "Rejoining server...",
+        Duration = 3
+    })
+    
+    if #Players:GetPlayers() <= 1 then
+        Players.LocalPlayer:Kick("\nRejoining...")
+        wait(0.5)
+        TeleportService:Teleport(PlaceId, Players.LocalPlayer)
+    else
+        TeleportService:TeleportToPlaceInstance(PlaceId, JobId, Players.LocalPlayer)
+    end
+end)
+
+-- Setup chat commands (optional)
+setupChatCommands()
+
+CommandsSection:AddButton({
+    Title = "Enable Chat Commands",
+    Description = "Use ;rejoin or ;rj in chat",
+    Callback = function()
+        Fluent:Notify({
+            Title = "Chat Commands",
+            Content = "Commands enabled! Use ;rejoin or ;rj",
+            Duration = 5
+        })
+    end
+})
 
 
 
