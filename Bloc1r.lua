@@ -22,9 +22,9 @@ local Window = Fluent:CreateWindow({
 local Tabs = {
     Fish = Window:AddTab({ Title = "Fish", Icon = "" }),
     Wtp = Window:AddTab({ Title = "World TP", Icon = "" }),
-    Weather = Window:AddTab({ Title = "Weather Machine", Icon = "" }),
+    -- Weather = Window:AddTab({ Title = "Weather Machine", Icon = "" }),
     Boats = Window:AddTab({ Title = "Spawn Boat", icon = "" }),
-    Utilities = Window:AddTab({ Title = "Utilities", Icon = "⚙️" }),
+    Utilities = Window:AddTab({ Title = "Utilities", Icon = "" }),
     Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
 }
 local AutoFishSection = Tabs.Fish:AddSection("Auto Fish")
@@ -45,6 +45,8 @@ local animator = humanoid:FindFirstChildOfClass("Animator") or Instance.new("Ani
 local TeleportService = game:GetService("TeleportService")
 local PlaceId = game.PlaceId
 local JobId = game.JobId
+local HttpService = game:GetService("HttpService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 
 -- Config
@@ -230,7 +232,7 @@ local ToggleAutoSell = AutoSellSection:AddToggle("AutoSellToggle", {
 
 
 local Players = game:GetService("Players")
-local player = Players.LocalPlayer
+-- local player = Players.LocalPlayer
 local root = player.Character or player.CharacterAdded:Wait()
 root = root:WaitForChild("HumanoidRootPart")
 
