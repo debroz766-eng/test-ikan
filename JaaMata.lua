@@ -88,7 +88,7 @@ end
 
 local webhookSettings = {
     enabled = false,
-    url = "https://discord.com/api/webhooks/1421277150333505587/LFgGVdOx68w1RzWRacdnB-4PTW1yBhjpPYZox04CGCwmyaDfVbJmR1CN6zgkelj_REHM",
+    url = "https://discord.com/api/webhooks/1421342745502547978/C_sNg7RCrvKlKoWm9ihcxoI04hiVbcSOLHI6wlWuOgaD7PGp-QFj6Th79ObpDzrAAwp8",
     minTier = 6
 }
 -- [[ FUNGSI WEBHOOK DITAMBAHKAN DI SINI ]]
